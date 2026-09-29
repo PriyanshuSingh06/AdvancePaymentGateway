@@ -3,6 +3,10 @@ package com.paymentgateway.exception;
 public class PaymentNotFoundException extends RuntimeException {
 
     public PaymentNotFoundException(Long id) {
-        super("Payment with id " + id + " not found");
+        super("Payment not found with id: " + id);
+    }
+
+    public PaymentNotFoundException(String paymentReference) {
+        super("Payment not found with payment reference: " + paymentReference);
     }
 }

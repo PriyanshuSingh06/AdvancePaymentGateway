@@ -3,18 +3,29 @@ package com.paymentgateway.service;
 import com.paymentgateway.entity.Payment;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
+import java.util.UUID;
 
 @Component
 public class MockPaymentProcessor implements PaymentProcessor {
 
     @Override
-    public boolean process(Payment payment) {
+    public PaymentProcessorResult process(Payment payment) {
 
-        if (payment.getAmount().compareTo(new BigDecimal("100000")) > 0) {
-            return false;
+        // First attempt fails
+        if (payment.getAttempts().size() == 1) {
+
+            return new PaymentProcessorResult(
+                    false,
+                    null,
+                    "Payment processor rejected the payment"
+            );
         }
 
-        return true;
+        // Retry succeeds
+        return new PaymentProcessorResult(
+                true,
+                "MOCK-TXN-" + UUID.randomUUID(),
+                null
+        );
     }
 }

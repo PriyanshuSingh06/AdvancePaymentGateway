@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.List;
+import java.util.ArrayList;
 
 @Entity
 @Table(name = "payments")
@@ -40,6 +42,15 @@ public class Payment {
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    // One Payment can have many Payment Attempts
+    @OneToMany(
+            mappedBy = "payment",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private List<PaymentAttempt> attempts = new ArrayList<>();
+
 
     // Getters and Setters
 
@@ -98,6 +109,7 @@ public class Payment {
     public void setPaymentMethod(PaymentMethod paymentMethod) {
         this.paymentMethod = paymentMethod;
     }
+
     public String getIdempotencyKey() {
         return idempotencyKey;
     }
@@ -122,6 +134,15 @@ public class Payment {
         this.updatedAt = updatedAt;
     }
 
+    public List<PaymentAttempt> getAttempts() {
+        return attempts;
+    }
+
+    public void setAttempts(List<PaymentAttempt> attempts) {
+        this.attempts = attempts;
+    }
+
+
     @PrePersist
     protected void onCreate() {
 
@@ -136,6 +157,7 @@ public class Payment {
             paymentReference = "PAY-" + UUID.randomUUID();
         }
     }
+
 
     @PreUpdate
     protected void onUpdate() {

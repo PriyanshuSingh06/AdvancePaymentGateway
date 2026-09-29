@@ -49,4 +49,8 @@ public class PaymentController {
 
         return paymentService.refundPayment(id);
     }
+    @PostMapping("/{id}/retry")
+    public PaymentResponse retryPayment(@PathVariable Long id) {
+        return paymentService.retryPayment(id);
+    }
 }
