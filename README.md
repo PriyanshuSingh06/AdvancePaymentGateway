@@ -1,6 +1,6 @@
 # Advance Payment Gateway
 
-A Spring Boot payment gateway prototype for creating, processing, retrying, refunding, and tracking payments with idempotency and webhook-based status updates.
+A Spring Boot payment gateway prototype with a separate Kafka-backed notification consumer. The gateway creates, processes, retries, refunds, and tracks payments with idempotency and webhook-based status updates; the notification service consumes payment status events.
 
 This repository is still a backend prototype and not a production payment platform. It focuses on the core payment lifecycle and persistence flow rather than real provider integration or full security controls.
 
@@ -14,6 +14,7 @@ This repository is still a backend prototype and not a production payment platfo
 - Persistent payment attempts with attempt tracking and status history.
 - Persisted payment status transition history, queryable per payment.
 - Kafka events published when a payment changes status.
+- Separate `PaymentNotificationService` microservice consuming payment status events.
 - Webhook event handling with signature verification.
 - Duplicate webhook protection through persisted event IDs.
 - Flyway migrations for idempotency, payment attempts, and webhook records.
@@ -43,6 +44,10 @@ The project uses `MockPaymentProcessor` to simulate provider behavior:
 
 This is intentionally a simulated gateway flow and not connected to a live payment provider.
 
+### Notification microservice
+
+`PaymentNotificationService` is a separate Spring Boot application that subscribes to the `payment-events` Kafka topic and logs each received payment event. It listens on port `8082` and currently demonstrates event consumption rather than sending email, SMS, or push notifications.
+
 ## Tech stack
 
 - Java 26
@@ -58,6 +63,16 @@ This is intentionally a simulated gateway flow and not connected to a live payme
 ## Project structure
 
 ```text
+PaymentNotificationService/
+  pom.xml
+  src/main/java/org/paymentgateway/notification/
+    PaymentNotificationSystemApplication.java
+    config/KafkaConsumerConfig.java
+    event/PaymentEvent.java
+    kafka/PaymentEventConsumer.java
+  src/main/resources/
+    application.yml
+
 src/main/java/com/paymentgateway/
   controller/
     PaymentController.java
@@ -136,7 +151,7 @@ The app also expects Flyway to run migrations against the same PostgreSQL databa
 
 ## Run the application
 
-From the project root:
+Run the gateway from the repository root:
 
 ```bash
 mvn clean package
@@ -148,6 +163,15 @@ The application runs on the default Spring Boot port:
 ```text
 http://localhost:8080
 ```
+
+Run the notification consumer in a second terminal from its project directory:
+
+```bash
+cd PaymentNotificationService
+mvn spring-boot:run
+```
+
+The consumer listens for `payment-events` from the Kafka broker at `localhost:9092`. Start the broker before processing gateway payments if you want to see notifications consumed.
 
 ## API endpoints
 

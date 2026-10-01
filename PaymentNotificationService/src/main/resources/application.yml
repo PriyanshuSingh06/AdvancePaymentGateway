@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: PaymentNotificationService
+
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    consumer:
+      group-id: payment-notification-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+
+      properties:
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: org.paymentgateway.notification.event.PaymentEvent
+        spring.json.trusted.packages: org.paymentgateway.notification.event
+
+logging:
+  level:
+    org.springframework.kafka: DEBUG
+    org.apache.kafka: INFO
+
+server:
+  port: 8082
