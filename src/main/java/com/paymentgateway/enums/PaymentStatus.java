@@ -1,10 +1,11 @@
-package com.paymentgateway.entity;
+package com.paymentgateway.enums;
 
 public enum PaymentStatus {
 
     CREATED,
-    PENDING,
+    PROCESSING,
     SUCCESS,
     FAILED,
+    REFUNDING,
     REFUNDED
 }

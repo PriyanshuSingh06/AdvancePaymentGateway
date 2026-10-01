@@ -6,7 +6,7 @@ import com.paymentgateway.dto.PaymentWebhookRequest;
 import com.paymentgateway.entity.Payment;
 import com.paymentgateway.entity.PaymentAttempt;
 import com.paymentgateway.entity.PaymentAttemptStatus;
-import com.paymentgateway.entity.PaymentStatus;
+import com.paymentgateway.enums.PaymentStatus;
 import com.paymentgateway.entity.WebhookEvent;
 import com.paymentgateway.exception.PaymentNotFoundException;
 import com.paymentgateway.repository.PaymentAttemptRepository;

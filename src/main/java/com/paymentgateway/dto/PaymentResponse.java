@@ -1,7 +1,7 @@
 package com.paymentgateway.dto;
 
 import com.paymentgateway.entity.PaymentMethod;
-import com.paymentgateway.entity.PaymentStatus;
+import com.paymentgateway.enums.PaymentStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

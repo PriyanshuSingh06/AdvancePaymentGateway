@@ -1,6 +1,6 @@
 package com.paymentgateway.dto;
 
-import com.paymentgateway.entity.PaymentStatus;
+import com.paymentgateway.enums.PaymentStatus;
 
 public class PaymentWebhookRequest {
 

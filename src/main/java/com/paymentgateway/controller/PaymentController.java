@@ -2,6 +2,8 @@ package com.paymentgateway.controller;
 
 import com.paymentgateway.dto.PaymentRequest;
 import com.paymentgateway.dto.PaymentResponse;
+import com.paymentgateway.dto.PaymentTransactionResponse;
+import com.paymentgateway.entity.PaymentTransaction;
 import com.paymentgateway.service.PaymentService;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -52,5 +54,11 @@ public class PaymentController {
     @PostMapping("/{id}/retry")
     public PaymentResponse retryPayment(@PathVariable Long id) {
         return paymentService.retryPayment(id);
+    }
+    @GetMapping("/{id}/transactions")
+    public List<PaymentTransactionResponse> getPaymentTransactions(
+            @PathVariable Long id) {
+
+        return paymentService.getPaymentTransactions(id);
     }
 }

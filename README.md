@@ -12,6 +12,8 @@ This repository is still a backend prototype and not a production payment platfo
 - Retry flow for failed payments.
 - Refund flow for successful payments.
 - Persistent payment attempts with attempt tracking and status history.
+- Persisted payment status transition history, queryable per payment.
+- Kafka events published when a payment changes status.
 - Webhook event handling with signature verification.
 - Duplicate webhook protection through persisted event IDs.
 - Flyway migrations for idempotency, payment attempts, and webhook records.
@@ -21,10 +23,15 @@ This repository is still a backend prototype and not a production payment platfo
 
 ### Payment lifecycle
 
-- `CREATED` → `PENDING` → `SUCCESS` or `FAILED`
+- `CREATED` → `PROCESSING` → `SUCCESS` or `FAILED`
 - Failed payments can be retried.
-- Successful payments can be refunded to `REFUNDED`.
+- Successful payments move through `REFUNDING` to `REFUNDED` (simulated).
+- Each status transition is stored as a payment transaction with its previous and next status, timestamp, and description.
 - A payment has a generated `paymentReference` and an idempotency key for safe replays.
+
+### Payment events
+
+Every payment status transition is published as a JSON event to the Kafka topic `payment-events`. The payment ID is used as the Kafka message key. Events include the payment ID and reference, amount, currency, previous and new statuses, and timestamp. The producer currently connects to `localhost:9092`.
 
 ### Mock processor behavior
 
@@ -44,6 +51,7 @@ This is intentionally a simulated gateway flow and not connected to a live payme
 - Spring Validation
 - Spring Data JPA
 - PostgreSQL
+- Apache Kafka
 - Flyway
 - Maven
 
@@ -57,14 +65,21 @@ src/main/java/com/paymentgateway/
   dto/
     PaymentRequest.java
     PaymentResponse.java
+    PaymentTransactionResponse.java
     PaymentWebhookRequest.java
   entity/
     Payment.java
     PaymentAttempt.java
-    PaymentAttemptStatus.java
-    PaymentMethod.java
-    PaymentStatus.java
+    PaymentTransaction.java
     WebhookEvent.java
+  enums/
+    PaymentStatus.java
+  kafka/
+    PaymentEventProducer.java
+  event/
+    PaymentEvent.java
+  state/
+    PaymentStateMachine.java
   exception/
     GlobalExceptionHandler.java
     InvalidPaymentException.java
@@ -72,6 +87,7 @@ src/main/java/com/paymentgateway/
   repository/
     PaymentRepository.java
     PaymentAttemptRepository.java
+    PaymentTransactionRepository.java
     WebhookEventRepository.java
   service/
     MockPaymentProcessor.java
@@ -89,6 +105,7 @@ src/main/resources/
     V4__enforce_idempotency_key.sql
     V5__create_payment_attempts_table.sql
     V6__create_webhook_events_table.sql
+    V7__create_payment_transactions.sql
 ```
 
 ## Prerequisites
@@ -96,6 +113,7 @@ src/main/resources/
 - JDK 26
 - Maven
 - PostgreSQL database
+- Kafka broker listening on `localhost:9092`
 
 ## Configuration
 
@@ -180,6 +198,12 @@ POST /api/payments/{id}/process
 POST /api/payments/{id}/retry
 ```
 
+#### Get payment status-transition history
+
+```http
+GET /api/payments/{id}/transactions
+```
+
 #### Refund a successful payment
 
 ```http
@@ -213,9 +237,10 @@ The webhook payload is parsed into `PaymentWebhookRequest`, validated through a 
 
 ```text
 CREATED
-PENDING
+PROCESSING
 SUCCESS
 FAILED
+REFUNDING
 REFUNDED
 ```
 
@@ -235,6 +260,7 @@ The project includes Flyway migrations for:
 - adding and enforcing idempotency keys
 - creating the payment attempts table
 - creating the webhook events table
+- creating the payment status transaction-history table
 
 These files are under:
 
